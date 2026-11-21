@@ -3,6 +3,11 @@ import { withX402, x402ResourceServer } from "@x402/next";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import type { Network } from "@x402/core/types";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
+import {
+  bazaarResourceServerExtension,
+  declareDiscoveryExtension,
+} from "@x402/extensions/bazaar";
+import { createFacilitatorConfig } from "@coinbase/x402";
 import { extractPage } from "@/lib/extract";
 
 // ---------------------------------------------------------------------------
@@ -11,7 +16,11 @@ import { extractPage } from "@/lib/extract";
 //                    Leave unset for free local testing (no paywall).
 //   X402_NETWORK     "eip155:8453" = Base mainnet (live money)
 //                    "eip155:84532" = Base Sepolia testnet (default, fake money)
-//   FACILITATOR_URL  x402 facilitator that verifies/settles payments.
+//   FACILITATOR_URL  x402 facilitator that verifies/settles payments
+//                    (used when no CDP keys are configured).
+//   CDP_API_KEY_ID / CDP_API_KEY_SECRET
+//                    When both are set, payments settle through Coinbase's
+//                    CDP facilitator (required for Bazaar cataloging).
 //   PRICE            Price per read, e.g. "$0.005" (default)
 // ---------------------------------------------------------------------------
 const payTo = process.env.PAY_TO_ADDRESS as `0x${string}` | undefined;
@@ -19,6 +28,16 @@ const network = (process.env.X402_NETWORK ?? "eip155:84532") as Network;
 const facilitatorUrl =
   process.env.FACILITATOR_URL ?? "https://x402.org/facilitator";
 const price = process.env.PRICE ?? "$0.005";
+
+// CDP keys present → settle through Coinbase CDP (signed JWT auth handled by
+// @coinbase/x402). Otherwise fall back to the plain facilitator URL (e.g.
+// PayAI's public mainnet facilitator, which needs no keys).
+const useCdp = Boolean(
+  process.env.CDP_API_KEY_ID && process.env.CDP_API_KEY_SECRET,
+);
+const facilitatorClient = useCdp
+  ? new HTTPFacilitatorClient(createFacilitatorConfig())
+  : new HTTPFacilitatorClient({ url: facilitatorUrl });
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   let body: unknown;
@@ -49,6 +68,8 @@ async function handler(request: NextRequest): Promise<NextResponse> {
 // When a payout address is configured, the endpoint is paywalled with x402:
 // an unpaid call gets HTTP 402 with payment instructions; after the agent
 // pays in USDC, the request runs and payment settles only on success.
+// The Bazaar discovery extension is declared so facilitators and catalogs
+// (Coinbase Bazaar, Agentic Market) can index this service.
 export const POST = payTo
   ? withX402(
       handler,
@@ -63,10 +84,34 @@ export const POST = payTo
           description:
             "Fetch any web page and return its main content as clean, AI-readable Markdown. Pay per call — no API key, no account.",
           mimeType: "application/json",
+          extensions: declareDiscoveryExtension({
+            input: { url: "https://example.com" },
+            inputSchema: {
+              properties: {
+                url: {
+                  type: "string",
+                  description:
+                    "The web page URL to fetch and convert to Markdown.",
+                },
+              },
+              required: ["url"],
+            },
+            bodyType: "json",
+            output: {
+              example: {
+                url: "https://example.com",
+                title: "Example Domain",
+                excerpt: "This domain is for use in documentation examples.",
+                markdown:
+                  "# Example Domain\n\nThis domain is for use in documentation examples without needing permission.",
+                wordCount: 12,
+              },
+            },
+          }),
         },
       },
-      new x402ResourceServer(
-        new HTTPFacilitatorClient({ url: facilitatorUrl }),
-      ).register(network, new ExactEvmScheme()),
+      new x402ResourceServer(facilitatorClient)
+        .register(network, new ExactEvmScheme())
+        .registerExtension(bazaarResourceServerExtension),
     )
   : handler;
