@@ -1,6 +1,7 @@
 import { Readability } from "@mozilla/readability";
 import { JSDOM } from "jsdom";
 import TurndownService from "turndown";
+import { extractWithFirecrawl, firecrawlConfigured } from "./firecrawl";
 
 export interface ExtractedPage {
   url: string;
@@ -14,7 +15,7 @@ const MAX_BYTES = 5_000_000; // 5 MB page cap
 const FETCH_TIMEOUT_MS = 15_000;
 
 /** Reject URLs that could reach private/internal addresses. */
-function assertPublicUrl(raw: string): URL {
+export function assertPublicUrl(raw: string): URL {
   let url: URL;
   try {
     url = new URL(raw);
@@ -51,9 +52,9 @@ turndown.remove(["script", "style", "noscript", "iframe", "form", "nav"]);
 
 /**
  * Fetch a web page and return its main content as clean Markdown
- * that an AI agent can read.
+ * that an AI agent can read. (Local pipeline: fetch + Readability.)
  */
-export async function extractPage(rawUrl: string): Promise<ExtractedPage> {
+async function extractLocally(rawUrl: string): Promise<ExtractedPage> {
   const url = assertPublicUrl(rawUrl);
 
   const controller = new AbortController();
@@ -117,4 +118,35 @@ export async function extractPage(rawUrl: string): Promise<ExtractedPage> {
     markdown: fallbackText,
     wordCount: fallbackText.split(/\s+/).filter(Boolean).length,
   };
+}
+
+/**
+ * Read a page: local extractor first (free). When Firecrawl is configured
+ * (FIRECRAWL_API_KEY set), it rescues reads the local pipeline cannot do:
+ * outright failures (JavaScript-heavy or blocked pages) and near-empty
+ * results such as "enable JavaScript" shells. A rescued read settles the
+ * caller's payment instead of returning a 502.
+ */
+export async function extractPage(rawUrl: string): Promise<ExtractedPage> {
+  let localError: unknown;
+  try {
+    const page = await extractLocally(rawUrl);
+    if (page.wordCount >= 10 || !firecrawlConfigured()) {
+      return page;
+    }
+    // Near-empty local result — try to rescue it, but never fail a read
+    // that technically worked if Firecrawl cannot do better.
+    try {
+      const rescued = await extractWithFirecrawl(new URL(page.url));
+      return rescued.wordCount > page.wordCount ? rescued : page;
+    } catch {
+      return page;
+    }
+  } catch (err) {
+    localError = err;
+  }
+  if (firecrawlConfigured()) {
+    return extractWithFirecrawl(assertPublicUrl(rawUrl));
+  }
+  throw localError;
 }
