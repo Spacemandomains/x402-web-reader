@@ -70,48 +70,66 @@ async function handler(request: NextRequest): Promise<NextResponse> {
 // pays in USDC, the request runs and payment settles only on success.
 // The Bazaar discovery extension is declared so facilitators and catalogs
 // (Coinbase Bazaar, Agentic Market) can index this service.
-export const POST = payTo
-  ? withX402(
-      handler,
-      {
-        "/api/read": {
-          accepts: {
-            scheme: "exact",
-            payTo,
-            price,
-            network,
+const routes = {
+  "/api/read": {
+    accepts: {
+      scheme: "exact" as const,
+      payTo: payTo as `0x${string}`,
+      price,
+      network,
+    },
+    description:
+      "Fetch any web page and return its main content as clean, AI-readable Markdown. Pay per call — no API key, no account.",
+    mimeType: "application/json",
+    extensions: declareDiscoveryExtension({
+      input: { url: "https://example.com" },
+      inputSchema: {
+        properties: {
+          url: {
+            type: "string",
+            description:
+              "The web page URL to fetch and convert to Markdown.",
           },
-          description:
-            "Fetch any web page and return its main content as clean, AI-readable Markdown. Pay per call — no API key, no account.",
-          mimeType: "application/json",
-          extensions: declareDiscoveryExtension({
-            input: { url: "https://example.com" },
-            inputSchema: {
-              properties: {
-                url: {
-                  type: "string",
-                  description:
-                    "The web page URL to fetch and convert to Markdown.",
-                },
-              },
-              required: ["url"],
-            },
-            bodyType: "json",
-            output: {
-              example: {
-                url: "https://example.com",
-                title: "Example Domain",
-                excerpt: "This domain is for use in documentation examples.",
-                markdown:
-                  "# Example Domain\n\nThis domain is for use in documentation examples without needing permission.",
-                wordCount: 12,
-              },
-            },
-          }),
+        },
+        required: ["url"],
+      },
+      bodyType: "json",
+      output: {
+        example: {
+          url: "https://example.com",
+          title: "Example Domain",
+          excerpt: "This domain is for use in documentation examples.",
+          markdown:
+            "# Example Domain\n\nThis domain is for use in documentation examples without needing permission.",
+          wordCount: 12,
         },
       },
-      new x402ResourceServer(facilitatorClient)
-        .register(network, new ExactEvmScheme())
-        .registerExtension(bazaarResourceServerExtension),
-    )
+    }),
+  },
+};
+
+const resourceServer = new x402ResourceServer(facilitatorClient)
+  .register(network, new ExactEvmScheme())
+  .registerExtension(bazaarResourceServerExtension);
+
+export const POST = payTo
+  ? withX402(handler, routes, resourceServer)
   : handler;
+
+// Directory probers (x402scan, x402dash, PayAI) often probe with GET or
+// HEAD instead of POST. An unpaid GET returns the same 402 payment
+// challenge; a paid GET reaches this hint and is NOT charged (405 is not
+// a success status, so withX402 does not settle).
+async function getHint(): Promise<NextResponse> {
+  return NextResponse.json(
+    {
+      error:
+        "Use POST. An unpaid POST returns the x402 payment challenge for this endpoint.",
+    },
+    { status: 405 },
+  );
+}
+
+export const GET = payTo
+  ? withX402(getHint, routes, resourceServer)
+  : getHint;
