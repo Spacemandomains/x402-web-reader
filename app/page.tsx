@@ -1,4 +1,5 @@
 const PRICE = process.env.PRICE ?? "$0.10";
+const RESEARCH_PRICE = process.env.RESEARCH_PRICE ?? "$1.00";
 
 export default function Home() {
   return (
@@ -57,9 +58,37 @@ Content-Type: application/json
 }`}
       </pre>
 
+      <h2 style={{ marginTop: 40 }}>Research endpoint</h2>
+      <p>
+        Don&apos;t fetch pages one by one — ask the question and get the
+        finished answer. The research endpoint searches the web, reads the
+        top sources, and returns a briefing in Markdown with citations.
+      </p>
+      <pre
+        style={{
+          background: "#12161f",
+          border: "1px solid #232a38",
+          borderRadius: 8,
+          padding: 16,
+          overflowX: "auto",
+        }}
+      >
+        {`POST /api/research
+Content-Type: application/json
+
+{ "question": "What are the current US federal EV tax credit rules?" }`}
+      </pre>
+      <p>
+        The response carries the <code>briefing</code> (Markdown, with inline
+        citations and a source list), the <code>sources</code> used, and a{" "}
+        <code>wordCount</code>. Failed research runs are never charged.
+      </p>
+
       <h2 style={{ marginTop: 40 }}>Pricing</h2>
       <p>
-        <strong>{PRICE} per read</strong>, paid in USDC on Base via the{" "}
+        <strong>{PRICE} per read</strong> and{" "}
+        <strong>{RESEARCH_PRICE} per research call</strong>, paid in USDC on
+        Base via the{" "}
         <a
           href="https://x402.org"
           style={{ color: "#6ea8fe" }}
