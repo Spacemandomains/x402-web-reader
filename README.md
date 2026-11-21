@@ -1,7 +1,7 @@
 # WebReader — pay-per-call page reading for AI agents
 
 Send any URL, get the page's main content back as clean, AI-readable
-Markdown. Agents pay **$0.005 per read** in USDC on Base via the
+Markdown. Agents pay **$0.10 per read** in USDC on Base via the
 [x402 protocol](https://x402.org) — no API key, no account, no subscription.
 
 Built for listing on [Agentic Market](https://agentic.market) and the
@@ -35,7 +35,7 @@ curl -X POST http://localhost:3000/api/read \
 | `PAY_TO_ADDRESS`  | Coinbase Wallet address (Base) that receives payments. Unset = free mode. |
 | `X402_NETWORK`    | `eip155:84532` Base Sepolia testnet (default) · `eip155:8453` Base mainnet |
 | `FACILITATOR_URL` | Facilitator that verifies/settles payments (default: public testnet facilitator) |
-| `PRICE`           | Price per read (default `$0.005`)                              |
+| `PRICE`           | Price per read (default `$0.10`)                              |
 
 ## Going live (checklist)
 
