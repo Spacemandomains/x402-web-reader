@@ -17,6 +17,16 @@ Coinbase x402 Bazaar.
 - Extraction uses Mozilla Readability (the tech behind Firefox Reader View)
   and converts the article to Markdown.
 
+## Research endpoint
+
+- `POST /api/research` with `{ "question": "…" }` — **$1.00 per call**.
+- Tavily runs an advanced web search and extracts the top sources; an LLM
+  (OpenAI or Anthropic key, when configured) synthesizes a briefing in
+  Markdown with inline citations and a source list. Without an LLM key it
+  falls back to Tavily's own generated answer plus source extracts.
+- Same payment rules: 402 unpaid, settles only on success, failures are
+  never charged.
+
 ## Run locally
 
 ```bash
@@ -36,6 +46,10 @@ curl -X POST http://localhost:3000/api/read \
 | `X402_NETWORK`    | `eip155:84532` Base Sepolia testnet (default) · `eip155:8453` Base mainnet |
 | `FACILITATOR_URL` | Facilitator that verifies/settles payments (default: public testnet facilitator) |
 | `PRICE`           | Price per read (default `$0.10`)                              |
+| `RESEARCH_PRICE`  | Price per research call (default `$1.00`)                     |
+| `TAVILY_API_KEY`  | Tavily key — required for `/api/research` (search + extraction) |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Optional LLM key for briefing synthesis (first set wins) |
+| `FIRECRAWL_API_KEY` | Optional fallback reader for pages the built-in reader fails on |
 
 ## Going live (checklist)
 
