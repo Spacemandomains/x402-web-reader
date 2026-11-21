@@ -71,56 +71,73 @@ async function handler(request: NextRequest): Promise<NextResponse> {
 // Paywalled exactly like /api/read: unpaid calls get HTTP 402; payment
 // settles only when the briefing is produced. The Bazaar discovery
 // extension is declared so catalogs can index this service too.
-export const POST = payTo
-  ? withX402(
-      handler,
-      {
-        "/api/research": {
-          accepts: {
-            scheme: "exact",
-            payTo,
-            price,
-            network,
+const routes = {
+  "/api/research": {
+    accepts: {
+      scheme: "exact" as const,
+      payTo: payTo as `0x${string}`,
+      price,
+      network,
+    },
+    description:
+      "Ask a research question and get a finished, sourced briefing in Markdown — multiple web sources searched, read, and synthesized with citations. Pay per call — no API key, no account.",
+    mimeType: "application/json",
+    extensions: declareDiscoveryExtension({
+      input: {
+        question: "What are the current US federal EV tax credit rules?",
+      },
+      inputSchema: {
+        properties: {
+          question: {
+            type: "string",
+            description:
+              "The research question to answer with a sourced briefing (500 characters max).",
           },
-          description:
-            "Ask a research question and get a finished, sourced briefing in Markdown — multiple web sources searched, read, and synthesized with citations. Pay per call — no API key, no account.",
-          mimeType: "application/json",
-          extensions: declareDiscoveryExtension({
-            input: {
-              question: "What are the current US federal EV tax credit rules?",
+        },
+        required: ["question"],
+      },
+      bodyType: "json",
+      output: {
+        example: {
+          question:
+            "What are the current US federal EV tax credit rules?",
+          briefing:
+            "The federal clean vehicle credit offers up to $7,500… [1]\n\n## Sources\n\n1. [IRS — Credits for new clean vehicles](https://www.irs.gov/...)",
+          sources: [
+            {
+              title: "IRS — Credits for new clean vehicles",
+              url: "https://www.irs.gov/...",
             },
-            inputSchema: {
-              properties: {
-                question: {
-                  type: "string",
-                  description:
-                    "The research question to answer with a sourced briefing (500 characters max).",
-                },
-              },
-              required: ["question"],
-            },
-            bodyType: "json",
-            output: {
-              example: {
-                question:
-                  "What are the current US federal EV tax credit rules?",
-                briefing:
-                  "The federal clean vehicle credit offers up to $7,500… [1]\n\n## Sources\n\n1. [IRS — Credits for new clean vehicles](https://www.irs.gov/...)",
-                sources: [
-                  {
-                    title: "IRS — Credits for new clean vehicles",
-                    url: "https://www.irs.gov/...",
-                  },
-                ],
-                sourceCount: 8,
-                wordCount: 640,
-              },
-            },
-          }),
+          ],
+          sourceCount: 8,
+          wordCount: 640,
         },
       },
-      new x402ResourceServer(facilitatorClient)
-        .register(network, new ExactEvmScheme())
-        .registerExtension(bazaarResourceServerExtension),
-    )
+    }),
+  },
+};
+
+const resourceServer = new x402ResourceServer(facilitatorClient)
+  .register(network, new ExactEvmScheme())
+  .registerExtension(bazaarResourceServerExtension);
+
+export const POST = payTo
+  ? withX402(handler, routes, resourceServer)
   : handler;
+
+// Directory probers often probe with GET or HEAD instead of POST. An
+// unpaid GET returns the same 402 payment challenge; a paid GET reaches
+// this hint and is NOT charged (405 does not settle).
+async function getHint(): Promise<NextResponse> {
+  return NextResponse.json(
+    {
+      error:
+        "Use POST. An unpaid POST returns the x402 payment challenge for this endpoint.",
+    },
+    { status: 405 },
+  );
+}
+
+export const GET = payTo
+  ? withX402(getHint, routes, resourceServer)
+  : getHint;
