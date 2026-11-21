@@ -1,4 +1,4 @@
-const PRICE = process.env.PRICE ?? "$0.005";
+const PRICE = process.env.PRICE ?? "$0.10";
 
 export default function Home() {
   return (
