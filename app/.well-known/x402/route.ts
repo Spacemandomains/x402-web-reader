@@ -7,6 +7,10 @@ const ORIGIN = "https://x402-web-reader.vercel.app";
 export async function GET() {
   return NextResponse.json({
     version: 1,
-    resources: [`${ORIGIN}/api/read`, `${ORIGIN}/api/research`],
+    resources: [
+      `${ORIGIN}/api/read`,
+      `${ORIGIN}/api/read-lite`,
+      `${ORIGIN}/api/research`,
+    ],
   });
 }

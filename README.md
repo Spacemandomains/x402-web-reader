@@ -17,6 +17,15 @@ Coinbase x402 Bazaar.
 - Extraction uses Mozilla Readability (the tech behind Firefox Reader View)
   and converts the article to Markdown.
 
+## Lite endpoint
+
+- `POST /api/read-lite` with `{ "url": "https://…" }` — **$0.005 per call**.
+- The high-volume loop tier of `/api/read`: same extraction pipeline
+  (Readability + Turndown, Firecrawl fallback when configured), URL in and
+  clean Markdown out — nothing else. No search, no synthesis.
+- Same payment rules: 402 unpaid, settles only on success, failures return
+  502 and are never charged.
+
 ## Research endpoint
 
 - `POST /api/research` with `{ "question": "…" }` — **$1.00 per call**.
@@ -46,6 +55,7 @@ curl -X POST http://localhost:3000/api/read \
 | `X402_NETWORK`    | `eip155:84532` Base Sepolia testnet (default) · `eip155:8453` Base mainnet |
 | `FACILITATOR_URL` | Facilitator that verifies/settles payments (default: public testnet facilitator) |
 | `PRICE`           | Price per read (default `$0.10`)                              |
+| `READ_LITE_PRICE` | Price per lite read (default `$0.005`)                        |
 | `RESEARCH_PRICE`  | Price per research call (default `$1.00`)                     |
 | `TAVILY_API_KEY`  | Tavily key — required for `/api/research` (search + extraction) |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Optional LLM key for briefing synthesis (first set wins) |

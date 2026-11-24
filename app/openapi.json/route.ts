@@ -9,6 +9,7 @@ function usd(priceEnv: string | undefined, fallback: string): string {
 }
 
 const readPrice = usd(process.env.PRICE, "$0.10");
+const readLitePrice = usd(process.env.READ_LITE_PRICE, "$0.005");
 const researchPrice = usd(process.env.RESEARCH_PRICE, "$1.00");
 
 const paymentInfo = (amount: string) => ({
@@ -28,7 +29,7 @@ export async function GET() {
       title: "WebReader",
       version: "1.0.0",
       description:
-        "Pay-per-call web reading and research for AI agents. POST a URL and get the page back as clean Markdown ($0.10), or POST a question and get a finished, sourced research briefing ($1.00). Paid in USDC on Base via the x402 protocol — no API key, no account.",
+        "Pay-per-call web reading and research for AI agents. POST a URL and get the page back as clean Markdown ($0.10, or $0.005 via the lite tier for high-volume loops), or POST a question and get a finished, sourced research briefing ($1.00). Paid in USDC on Base via the x402 protocol — no API key, no account.",
       contact: { name: "WebReader", url: `${ORIGIN}/` },
     },
     servers: [{ url: ORIGIN }],
@@ -41,6 +42,46 @@ export async function GET() {
             "Fetch any web page and return its main content as clean, AI-readable Markdown. Pay per call — no API key, no account.",
           security: [{ x402: [] }],
           "x-payment-info": paymentInfo(readPrice),
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    url: {
+                      type: "string",
+                      description:
+                        "The web page URL to fetch and convert to Markdown.",
+                    },
+                  },
+                  required: ["url"],
+                },
+                example: { url: "https://example.com" },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description:
+                "The page content as Markdown, with title, excerpt, and word count.",
+            },
+            "402": paymentRequiredResponse,
+            "502": {
+              description:
+                "The page could not be read. Failed calls are never charged.",
+            },
+          },
+        },
+      },
+      "/api/read-lite": {
+        post: {
+          operationId: "readPageLite",
+          summary: "Fetch a web page as clean Markdown (lite, low-cost tier)",
+          description:
+            "Fetch any web page and return its main content as clean, AI-readable Markdown — the low-cost lite tier for high-volume agent loops. Same extraction as /api/read; Markdown only, no research synthesis. Pay per call — no API key, no account.",
+          security: [{ x402: [] }],
+          "x-payment-info": paymentInfo(readLitePrice),
           requestBody: {
             required: true,
             content: {

@@ -1,4 +1,5 @@
 const PRICE = process.env.PRICE ?? "$0.10";
+const READ_LITE_PRICE = process.env.READ_LITE_PRICE ?? "$0.005";
 const RESEARCH_PRICE = process.env.RESEARCH_PRICE ?? "$1.00";
 
 export default function Home() {
@@ -58,6 +59,33 @@ Content-Type: application/json
 }`}
       </pre>
 
+      <h2 style={{ marginTop: 40 }}>Lite endpoint — for high-volume loops</h2>
+      <p>
+        Same page in, same clean Markdown out, at a loop-friendly price.
+        Built for agents that read pages continuously — no research
+        synthesis, just the extraction.
+      </p>
+      <pre
+        style={{
+          background: "#12161f",
+          border: "1px solid #232a38",
+          borderRadius: 8,
+          padding: 16,
+          overflowX: "auto",
+        }}
+      >
+        {`POST /api/read-lite
+Content-Type: application/json
+
+{ "url": "https://example.com/some-article" }`}
+      </pre>
+      <p>
+        The response is identical in shape to <code>/api/read</code> —
+        <code>url</code>, <code>title</code>, <code>excerpt</code>,{" "}
+        <code>markdown</code>, and <code>wordCount</code>. Failed reads are
+        never charged.
+      </p>
+
       <h2 style={{ marginTop: 40 }}>Research endpoint</h2>
       <p>
         Don&apos;t fetch pages one by one — ask the question and get the
@@ -86,7 +114,8 @@ Content-Type: application/json
 
       <h2 style={{ marginTop: 40 }}>Pricing</h2>
       <p>
-        <strong>{PRICE} per read</strong> and{" "}
+        <strong>{PRICE} per read</strong>,{" "}
+        <strong>{READ_LITE_PRICE} per lite read</strong>, and{" "}
         <strong>{RESEARCH_PRICE} per research call</strong>, paid in USDC on
         Base via the{" "}
         <a
