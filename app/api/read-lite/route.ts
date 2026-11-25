@@ -9,6 +9,7 @@ import {
 } from "@x402/extensions/bazaar";
 import { createFacilitatorConfig } from "@coinbase/x402";
 import { extractPage } from "@/lib/extract";
+import { READ_LITE_DESCRIPTION } from "@/lib/services-catalog";
 
 // ---------------------------------------------------------------------------
 // WebReader Lite — the high-volume loop tier of /api/read.
@@ -69,8 +70,7 @@ const routes = {
       price,
       network,
     },
-    description:
-      "Fetch any web page and return its main content as clean, AI-readable Markdown — the low-cost lite tier for high-volume agent loops. Pay per call — no API key, no account.",
+    description: READ_LITE_DESCRIPTION,
     mimeType: "application/json",
     extensions: declareDiscoveryExtension({
       input: { url: "https://example.com" },
@@ -123,3 +123,21 @@ async function getHint(): Promise<NextResponse> {
 export const GET = payTo
   ? withX402(getHint, routes, resourceServer)
   : getHint;
+
+// CORS preflight for browser-based agents (mirrors CryptoIntel's
+// corsPreflight): never paywalled, and the global headers in
+// next.config.ts expose PAYMENT-REQUIRED / PAYMENT-RESPONSE on the
+// actual 402 / settled responses so a browser agent can read them.
+export async function OPTIONS(): Promise<NextResponse> {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers":
+        "Content-Type, Authorization, PAYMENT-SIGNATURE, X-PAYMENT",
+      "Access-Control-Expose-Headers":
+        "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE",
+    },
+  });
+}
