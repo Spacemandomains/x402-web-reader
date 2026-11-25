@@ -10,6 +10,7 @@ export async function GET() {
     resources: [
       `${ORIGIN}/api/read`,
       `${ORIGIN}/api/read-lite`,
+      `${ORIGIN}/api/deal-verdict`,
       `${ORIGIN}/api/research`,
     ],
   });

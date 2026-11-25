@@ -31,6 +31,17 @@ export interface CatalogService {
 export const READ_LITE_DESCRIPTION =
   "Read a web page — web reader for AI agents: fetch any URL, extract text and scrape a page to clean Markdown, URL-to-Markdown for articles and docs. Low-cost lite tier for high-volume agent loops. Pay per call — no API key, no account.";
 
+/**
+ * Deal Verdict's x402 resource description — the exact string carried in
+ * its 402 challenge (app/api/deal-verdict/route.ts imports this too).
+ * Front-loads the phrases shopping agents search for ("deal check",
+ * "shopping agents", "Black Friday price", "real deal", "fake discount").
+ * 244 characters: inside the 205–269 proven-good zone and under the
+ * ~270-char CDP limit.
+ */
+export const DEAL_VERDICT_DESCRIPTION =
+  "Deal check for shopping agents — is this Black Friday price a real deal or a fake discount? Send a product and the price you found; get a verdict (real_deal / fake_discount / overpriced), the lowest price found, and cited sources. Pay per call.";
+
 export const SERVICES: CatalogService[] = [
   {
     slug: "read-lite",
@@ -41,6 +52,16 @@ export const SERVICES: CatalogService[] = [
     inputExample: { url: "https://example.com" },
     inputRequired: ["url"],
     tags: ["x402", "web-reader", "read-web-page", "fetch-url", "web-scraping", "markdown", "paid-api"],
+  },
+  {
+    slug: "deal-verdict",
+    name: "Deal Verdict — Deal Check for Shopping Agents",
+    description: DEAL_VERDICT_DESCRIPTION,
+    priceEnv: "DEAL_VERDICT_PRICE",
+    defaultPrice: "$0.01",
+    inputExample: { product: "Apple AirPods Pro 2", price: 189 },
+    inputRequired: ["product", "price"],
+    tags: ["x402", "deal-check", "price-check", "shopping-agent", "black-friday", "cyber-monday", "fake-discount", "price-comparison", "paid-api"],
   },
   {
     slug: "read",

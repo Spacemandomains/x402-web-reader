@@ -10,6 +10,7 @@ function usd(priceEnv: string | undefined, fallback: string): string {
 
 const readPrice = usd(process.env.PRICE, "$0.10");
 const readLitePrice = usd(process.env.READ_LITE_PRICE, "$0.005");
+const dealVerdictPrice = usd(process.env.DEAL_VERDICT_PRICE, "$0.01");
 const researchPrice = usd(process.env.RESEARCH_PRICE, "$1.00");
 
 const paymentInfo = (amount: string) => ({
@@ -29,7 +30,7 @@ export async function GET() {
       title: "WebReader",
       version: "1.0.0",
       description:
-        "Pay-per-call web reading and research for AI agents. POST a URL and get the page back as clean Markdown ($0.10, or $0.005 via the lite tier for high-volume loops), or POST a question and get a finished, sourced research briefing ($1.00). Paid in USDC on Base via the x402 protocol — no API key, no account.",
+        "Pay-per-call web reading, deal checks, and research for AI agents. POST a URL and get the page back as clean Markdown ($0.10, or $0.005 via the lite tier for high-volume loops), POST a product and the price you found and get a deal verdict ($0.01), or POST a question and get a finished, sourced research briefing ($1.00). Paid in USDC on Base via the x402 protocol — no API key, no account.",
       contact: { name: "WebReader", url: `${ORIGIN}/` },
     },
     servers: [{ url: ORIGIN }],
@@ -110,6 +111,63 @@ export async function GET() {
             "502": {
               description:
                 "The page could not be read. Failed calls are never charged.",
+            },
+          },
+        },
+      },
+      "/api/deal-verdict": {
+        post: {
+          operationId: "dealVerdict",
+          summary: "Check whether a price is a real deal or a fake discount",
+          description:
+            "Deal check for shopping agents: send a product and the price you found; get a deterministic verdict (real_deal / fake_discount / overpriced / fair), the lowest price found, and cited sources. Prices are extracted from live web sources — never invented. Pay per call — no API key, no account.",
+          security: [{ x402: [] }],
+          "x-payment-info": paymentInfo(dealVerdictPrice),
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    product: {
+                      type: "string",
+                      description:
+                        "The product name (or a product page URL) whose price should be checked.",
+                    },
+                    price: {
+                      type: "number",
+                      description: "The price the calling agent found, in USD.",
+                    },
+                    url: {
+                      type: "string",
+                      description:
+                        "Optional: the product page URL where the price was found.",
+                    },
+                    compareAtPrice: {
+                      type: "number",
+                      description:
+                        "Optional: the claimed original ('was') price, used to detect fake discounts.",
+                    },
+                  },
+                  required: ["product", "price"],
+                },
+                example: { product: "Apple AirPods Pro 2", price: 189 },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description:
+                "The verdict, lowest and typical prices found, and every source price cited with its URL.",
+            },
+            "400": {
+              description: "Missing or invalid product / price. Never charged.",
+            },
+            "402": paymentRequiredResponse,
+            "502": {
+              description:
+                "Not enough price data could be extracted to judge the deal. Failed calls are never charged.",
             },
           },
         },

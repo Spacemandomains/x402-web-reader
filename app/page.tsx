@@ -1,5 +1,6 @@
 const PRICE = process.env.PRICE ?? "$0.10";
 const READ_LITE_PRICE = process.env.READ_LITE_PRICE ?? "$0.005";
+const DEAL_VERDICT_PRICE = process.env.DEAL_VERDICT_PRICE ?? "$0.01";
 const RESEARCH_PRICE = process.env.RESEARCH_PRICE ?? "$1.00";
 
 export default function Home() {
@@ -86,6 +87,32 @@ Content-Type: application/json
         never charged.
       </p>
 
+      <h2 style={{ marginTop: 40 }}>Deal Verdict — for shopping agents</h2>
+      <p>
+        Found a price? Check it before you buy. Send a product and the
+        price you found, and Deal Verdict searches current prices across
+        the web and returns a verdict — <code>real_deal</code>,{" "}
+        <code>fake_discount</code>, <code>overpriced</code>, or{" "}
+        <code>fair</code> — with the lowest price found and every source
+        cited. Prices are extracted from live sources, never invented;
+        when there isn&apos;t enough price data to judge, the call fails
+        and is never charged.
+      </p>
+      <pre
+        style={{
+          background: "#12161f",
+          border: "1px solid #232a38",
+          borderRadius: 8,
+          padding: 16,
+          overflowX: "auto",
+        }}
+      >
+        {`POST /api/deal-verdict
+Content-Type: application/json
+
+{ "product": "Apple AirPods Pro 2", "price": 189 }`}
+      </pre>
+
       <h2 style={{ marginTop: 40 }}>Research endpoint</h2>
       <p>
         Don&apos;t fetch pages one by one — ask the question and get the
@@ -115,7 +142,8 @@ Content-Type: application/json
       <h2 style={{ marginTop: 40 }}>Pricing</h2>
       <p>
         <strong>{PRICE} per read</strong>,{" "}
-        <strong>{READ_LITE_PRICE} per lite read</strong>, and{" "}
+        <strong>{READ_LITE_PRICE} per lite read</strong>,{" "}
+        <strong>{DEAL_VERDICT_PRICE} per deal check</strong>, and{" "}
         <strong>{RESEARCH_PRICE} per research call</strong>, paid in USDC on
         Base via the{" "}
         <a
