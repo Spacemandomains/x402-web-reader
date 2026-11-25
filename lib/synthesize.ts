@@ -15,7 +15,7 @@ import type { TavilyResult } from "./tavily";
 
 const LLM_TIMEOUT_MS = 90_000;
 // Keep the source pack bounded so per-call model cost stays a small
-// fraction of the $1.00 price.
+// fraction of the $0.50 price.
 const MAX_SOURCE_CHARS = 48_000;
 const MAX_PER_SOURCE_CHARS = 9_000;
 

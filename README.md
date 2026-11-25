@@ -1,7 +1,7 @@
 # WebReader — pay-per-call page reading for AI agents
 
 Send any URL, get the page's main content back as clean, AI-readable
-Markdown. Agents pay **$0.10 per read** in USDC on Base via the
+Markdown. Agents pay **$0.02 per read** in USDC on Base via the
 [x402 protocol](https://x402.org) — no API key, no account, no subscription.
 
 Built for listing on [Agentic Market](https://agentic.market) and the
@@ -28,7 +28,7 @@ Coinbase x402 Bazaar.
 
 ## Research endpoint
 
-- `POST /api/research` with `{ "question": "…" }` — **$1.00 per call**.
+- `POST /api/research` with `{ "question": "…" }` — **$0.50 per call**.
 - Tavily runs an advanced web search and extracts the top sources; an LLM
   (OpenAI or Anthropic key, when configured) synthesizes a briefing in
   Markdown with inline citations and a source list. Without an LLM key it
@@ -54,9 +54,9 @@ curl -X POST http://localhost:3000/api/read \
 | `PAY_TO_ADDRESS`  | Coinbase Wallet address (Base) that receives payments. Unset = free mode. |
 | `X402_NETWORK`    | `eip155:84532` Base Sepolia testnet (default) · `eip155:8453` Base mainnet |
 | `FACILITATOR_URL` | Facilitator that verifies/settles payments (default: public testnet facilitator) |
-| `PRICE`           | Price per read (default `$0.10`)                              |
+| `PRICE`           | Price per read (default `$0.02`)                              |
 | `READ_LITE_PRICE` | Price per lite read (default `$0.005`)                        |
-| `RESEARCH_PRICE`  | Price per research call (default `$1.00`)                     |
+| `RESEARCH_PRICE`  | Price per research call (default `$0.50`)                     |
 | `TAVILY_API_KEY`  | Tavily key — required for `/api/research` (search + extraction) |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Optional LLM key for briefing synthesis (first set wins) |
 | `FIRECRAWL_API_KEY` | Optional fallback reader for pages the built-in reader fails on |

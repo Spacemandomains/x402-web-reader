@@ -8,10 +8,10 @@ function usd(priceEnv: string | undefined, fallback: string): string {
   return (priceEnv ?? fallback).replace(/^\$/, "");
 }
 
-const readPrice = usd(process.env.PRICE, "$0.10");
+const readPrice = usd(process.env.PRICE, "$0.02");
 const readLitePrice = usd(process.env.READ_LITE_PRICE, "$0.005");
 const dealVerdictPrice = usd(process.env.DEAL_VERDICT_PRICE, "$0.01");
-const researchPrice = usd(process.env.RESEARCH_PRICE, "$1.00");
+const researchPrice = usd(process.env.RESEARCH_PRICE, "$0.50");
 
 const paymentInfo = (amount: string) => ({
   protocols: ["x402"],
@@ -30,7 +30,7 @@ export async function GET() {
       title: "WebReader",
       version: "1.0.0",
       description:
-        "Pay-per-call web reading, deal checks, and research for AI agents. POST a URL and get the page back as clean Markdown ($0.10, or $0.005 via the lite tier for high-volume loops), POST a product and the price you found and get a deal verdict ($0.01), or POST a question and get a finished, sourced research briefing ($1.00). Paid in USDC on Base via the x402 protocol — no API key, no account.",
+        "Pay-per-call web reading, deal checks, and research for AI agents. POST a URL and get the page back as clean Markdown ($0.02, or $0.005 via the lite tier for high-volume loops), POST a product and the price you found and get a deal verdict ($0.01), or POST a question and get a finished, sourced research briefing ($0.50). Paid in USDC on Base via the x402 protocol — no API key, no account.",
       contact: { name: "WebReader", url: `${ORIGIN}/` },
     },
     servers: [{ url: ORIGIN }],

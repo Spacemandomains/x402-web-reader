@@ -1,7 +1,7 @@
-const PRICE = process.env.PRICE ?? "$0.10";
+const PRICE = process.env.PRICE ?? "$0.02";
 const READ_LITE_PRICE = process.env.READ_LITE_PRICE ?? "$0.005";
 const DEAL_VERDICT_PRICE = process.env.DEAL_VERDICT_PRICE ?? "$0.01";
-const RESEARCH_PRICE = process.env.RESEARCH_PRICE ?? "$1.00";
+const RESEARCH_PRICE = process.env.RESEARCH_PRICE ?? "$0.50";
 
 export default function Home() {
   return (

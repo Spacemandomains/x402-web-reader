@@ -16,7 +16,7 @@ export const maxDuration = 180;
 // ---------------------------------------------------------------------------
 // Configuration mirrors app/api/read/route.ts (same wallet, network, and
 // facilitator selection), with its own price:
-//   RESEARCH_PRICE   Price per research call (default "$1.00")
+//   RESEARCH_PRICE   Price per research call (default "$0.50")
 //   TAVILY_API_KEY   Required — the search/extraction engine.
 //   OPENAI_API_KEY / ANTHROPIC_API_KEY
 //                    Optional — when either is set, the briefing is
@@ -27,7 +27,7 @@ const payTo = process.env.PAY_TO_ADDRESS as `0x${string}` | undefined;
 const network = (process.env.X402_NETWORK ?? "eip155:84532") as Network;
 const facilitatorUrl =
   process.env.FACILITATOR_URL ?? "https://x402.org/facilitator";
-const price = process.env.RESEARCH_PRICE ?? "$1.00";
+const price = process.env.RESEARCH_PRICE ?? "$0.50";
 
 const useCdp = Boolean(
   process.env.CDP_API_KEY_ID && process.env.CDP_API_KEY_SECRET,

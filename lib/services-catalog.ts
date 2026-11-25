@@ -69,7 +69,7 @@ export const SERVICES: CatalogService[] = [
     description:
       "Fetch any web page and return its main content as clean, AI-readable Markdown. Pay per call — no API key, no account.",
     priceEnv: "PRICE",
-    defaultPrice: "$0.10",
+    defaultPrice: "$0.02",
     inputExample: { url: "https://example.com" },
     inputRequired: ["url"],
     tags: ["x402", "web-reader", "read-web-page", "fetch-url", "web-scraping", "markdown", "paid-api"],
@@ -80,7 +80,7 @@ export const SERVICES: CatalogService[] = [
     description:
       "Ask a research question and get a finished, sourced briefing in Markdown — multiple web sources searched, read, and synthesized with citations. Pay per call — no API key, no account.",
     priceEnv: "RESEARCH_PRICE",
-    defaultPrice: "$1.00",
+    defaultPrice: "$0.50",
     inputExample: {
       question:
         "What is the x402 protocol, and how do AI agents use it to pay for services?",

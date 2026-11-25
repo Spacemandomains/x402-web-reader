@@ -21,13 +21,13 @@ import { extractPage } from "@/lib/extract";
 //   CDP_API_KEY_ID / CDP_API_KEY_SECRET
 //                    When both are set, payments settle through Coinbase's
 //                    CDP facilitator (required for Bazaar cataloging).
-//   PRICE            Price per read, e.g. "$0.10" (default)
+//   PRICE            Price per read, e.g. "$0.02" (default)
 // ---------------------------------------------------------------------------
 const payTo = process.env.PAY_TO_ADDRESS as `0x${string}` | undefined;
 const network = (process.env.X402_NETWORK ?? "eip155:84532") as Network;
 const facilitatorUrl =
   process.env.FACILITATOR_URL ?? "https://x402.org/facilitator";
-const price = process.env.PRICE ?? "$0.10";
+const price = process.env.PRICE ?? "$0.02";
 
 // CDP keys present → settle through Coinbase CDP (signed JWT auth handled by
 // @coinbase/x402). Otherwise fall back to the plain facilitator URL (e.g.
